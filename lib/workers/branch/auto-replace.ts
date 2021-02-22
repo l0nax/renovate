@@ -2,7 +2,7 @@ import { WORKER_FILE_UPDATE_FAILED } from '../../constants/error-messages';
 import { logger } from '../../logger';
 import { get } from '../../manager';
 import { PackageDependency } from '../../manager/common';
-import { writeLocalFile } from '../../util/fs';
+import { readLocalFile, writeLocalFile } from '../../util/fs';
 import { escapeRegExp, regEx } from '../../util/regex';
 import { matchAt, replaceAt } from '../../util/string';
 import { compile } from '../../util/template';
@@ -115,8 +115,11 @@ export async function doAutoReplace(
     newDigest,
     autoReplaceStringTemplate,
   } = upgrade;
+  const fileContent = upgrade.editFile
+    ? await readLocalFile(upgrade.editFile, 'utf8')
+    : existingContent;
   if (reuseExistingBranch) {
-    if (!(await checkBranchDepsMatchBaseDeps(upgrade, existingContent))) {
+    if (!(await checkBranchDepsMatchBaseDeps(upgrade, fileContent))) {
       logger.debug(
         { packageFile, depName },
         'Rebasing branch after deps list has changed'
@@ -131,17 +134,17 @@ export async function doAutoReplace(
       return null;
     }
     logger.debug({ packageFile, depName }, 'Branch dep is already updated');
-    return existingContent;
+    return fileContent;
   }
   const replaceString = upgrade.replaceString || currentValue;
   logger.trace({ depName, replaceString }, 'autoReplace replaceString');
-  let searchIndex = existingContent.indexOf(replaceString);
+  let searchIndex = fileContent.indexOf(replaceString);
   if (searchIndex === -1) {
     logger.info(
-      { packageFile, depName, existingContent, replaceString },
+      { fileContent, replaceString },
       'Cannot find replaceString in current file content. Was it already updated?'
     );
-    return existingContent;
+    return fileContent;
   }
   try {
     let newString: string;
@@ -167,26 +170,32 @@ export async function doAutoReplace(
       `Starting search at index ${searchIndex}`
     );
     // Iterate through the rest of the file
-    for (; searchIndex < existingContent.length; searchIndex += 1) {
+    for (; searchIndex < fileContent.length; searchIndex += 1) {
       // First check if we have a hit for the old version
-      if (matchAt(existingContent, searchIndex, replaceString)) {
+      if (matchAt(fileContent, searchIndex, replaceString)) {
         logger.debug(
           { packageFile, depName },
           `Found match at index ${searchIndex}`
         );
         // Now test if the result matches
         const testContent = replaceAt(
-          existingContent,
+          fileContent,
           searchIndex,
           replaceString,
           newString
         );
-        await writeLocalFile(upgrade.packageFile, testContent);
+        await writeLocalFile(
+          upgrade.editFile ? upgrade.editFile : upgrade.packageFile,
+          testContent
+        );
         if (await confirmIfDepUpdated(upgrade, testContent)) {
           return testContent;
         }
         // istanbul ignore next
-        await writeLocalFile(upgrade.packageFile, existingContent);
+        await writeLocalFile(
+          upgrade.editFile ? upgrade.editFile : upgrade.packageFile,
+          testContent
+        );
       }
     }
   } catch (err) /* istanbul ignore next */ {

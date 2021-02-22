@@ -1,5 +1,31 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`lib/manager/gitlabci-include/extract extractPackageFile() extracts all deps from local included file 1`] = `
+Array [
+  Object {
+    "autoReplaceStringTemplate": "{{depName}}{{#if newValue}}:{{newValue}}{{/if}}{{#if newDigest}}@{{newDigest}}{{/if}}",
+    "currentDigest": undefined,
+    "currentValue": "3.11",
+    "datasource": "docker",
+    "depName": "alpine",
+    "depType": "image",
+    "editFile": "lib/manager/gitlabci-include/__fixtures__/include.1.yml",
+    "replaceString": "alpine:3.11",
+  },
+  Object {
+    "autoReplaceStringTemplate": "{{depName}}{{#if newValue}}:{{newValue}}{{/if}}{{#if newDigest}}@{{newDigest}}{{/if}}",
+    "commitMessageTopic": "Node.js",
+    "currentDigest": undefined,
+    "currentValue": "12",
+    "datasource": "docker",
+    "depName": "node",
+    "depType": "image",
+    "editFile": "lib/manager/gitlabci-include/__fixtures__/include.2.yml",
+    "replaceString": "node:12",
+  },
+]
+`;
+
 exports[`lib/manager/gitlabci-include/extract extractPackageFile() extracts local include block 1`] = `
 Array [
   Object {
@@ -9,6 +35,7 @@ Array [
     "datasource": "docker",
     "depName": "alpine",
     "depType": "image",
+    "editFile": "lib/manager/gitlabci-include/__fixtures__/include.1.yml",
     "replaceString": "alpine:3.11",
   },
 ]
@@ -46,6 +73,7 @@ Array [
     "datasource": "docker",
     "depName": "alpine",
     "depType": "image",
+    "editFile": "lib/manager/gitlabci-include/__fixtures__/include.1.yml",
     "replaceString": "alpine:3.11",
   },
   Object {
@@ -56,6 +84,7 @@ Array [
     "datasource": "docker",
     "depName": "node",
     "depType": "image",
+    "editFile": "lib/manager/gitlabci-include/__fixtures__/include.2.yml",
     "replaceString": "node:12",
   },
 ]

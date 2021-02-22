@@ -33,7 +33,7 @@ async function extractDepsFromIncludeLocal(includeObj: {
   return deps;
 }
 
-export async function extractPackageFile(
+async function internalExtractPackageFile(
   content: string,
   _packageFile: string,
   config: ExtractConfig
@@ -54,6 +54,8 @@ export async function extractPackageFile(
           const includedDeps = await extractDepsFromIncludeLocal(includeObj);
           if (includedDeps) {
             for (const includedDep of includedDeps) {
+              includedDep.editFile = includeObj.local;
+              includedDep.editFile = includedDep.editFile.replace(/^\//, '');
               deps.push(includedDep);
             }
           }
@@ -72,4 +74,17 @@ export async function extractPackageFile(
     return null;
   }
   return { deps };
+}
+
+export async function extractPackageFile(
+  content: string,
+  _packageFile: string,
+  config: ExtractConfig
+): Promise<PackageFile | null> {
+  // if this is a imported file, we need to use the gitlabci manager
+  if (config.editFile) {
+    const baseContent = await readLocalFile(config.packageFile, 'utf8');
+    return internalExtractPackageFile(baseContent, _packageFile, config);
+  }
+  return internalExtractPackageFile(content, _packageFile, config);
 }

@@ -9,6 +9,10 @@ const yamlLocal = fs.readFileSync(
   'lib/manager/gitlabci-include/__fixtures__/gitlab-ci.2.yaml',
   'utf8'
 );
+const yamlLocalIncluded = fs.readFileSync(
+  'lib/manager/gitlabci-include/__fixtures__/include.2.yml',
+  'utf8'
+);
 
 const yamlLocalBlock = fs.readFileSync(
   'lib/manager/gitlabci-include/__fixtures__/gitlab-ci.3.yaml',
@@ -31,6 +35,19 @@ describe('lib/manager/gitlabci-include/extract', () => {
       const res = await extractPackageFile(yamlLocal, '.gitlab-ci.yml', {});
       expect(res.deps).toMatchSnapshot();
       expect(res.deps).toHaveLength(1);
+    });
+    it('extracts all deps from local included file', async () => {
+      const res = await extractPackageFile(
+        yamlLocalIncluded,
+        '.gitlab-ci.yml',
+        {
+          editFile: 'lib/manager/gitlabci-include/__fixtures__/include.2.yml',
+          packageFile:
+            'lib/manager/gitlabci-include/__fixtures__/gitlab-ci.3.yaml',
+        }
+      );
+      expect(res.deps).toMatchSnapshot();
+      expect(res.deps).toHaveLength(2);
     });
     it('extracts multiple local include blocks', async () => {
       const res = await extractPackageFile(

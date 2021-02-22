@@ -81,7 +81,9 @@ export async function getUpdatedPackageFiles(
             }
           } else {
             logger.debug({ packageFile, depName }, 'Contents updated');
-            updatedFileContents[packageFile] = res;
+            updatedFileContents[
+              upgrade.editFile ? upgrade.editFile : packageFile
+            ] = res;
           }
           continue; // eslint-disable-line no-continue
         } else if (reuseExistingBranch) {
